@@ -1,0 +1,146 @@
+body {
+	font-family: OCR-A, monospace;
+	font-size: 1em;
+	color:#000000;
+	background-color:#dddddd;
+	/*
+	width:80%;
+	margin:0 auto;
+	*/
+}
+#floatLeft {
+	float:right;
+}
+#blocklist {
+	max-height :700px;
+  overflow-x: hidden; /* Hide horizontal scrollbar, may not be needed */
+}
+.small {
+	margin: 0;
+	padding: 0;
+}
+#error {
+	background-color:#ff0000;
+}
+.down {
+	display:none;
+}
+thead {
+	position: sticky; top: 0;
+	background-color:#eeeeee;
+}
+
+.colorSquare{
+	font-size:1rem;
+	box-sizing: border-box;
+	width: 3em;
+	border: .25em solid black;
+	border-radius: .5em;
+	display: inline-block;
+	margin: 0;
+	padding: .75em;
+	text-align: center;
+}
+#editing{
+	width: 4em;
+	border: .5em solid black;
+	margin: -0.5em;
+}
+#colorControll {
+	overflow: auto;
+}
+input[type="range"] {
+	width:20em;
+}
+#preview {
+	font-size:5em;
+	box-sizing: border-box;
+	width: 5em;
+	height: 5em;
+	border: .25rem solid black;
+	border-radius: .5em;
+	display: inline-block;
+	margin: 0;
+	padding: .75em;
+	text-align: center;
+	float:left;
+}
+#colorManInput {
+	display:inline-block;
+}
+#colorManInput span{
+	display:block;
+	text-align:right;
+}
+#colorManInput span input[type=number]{
+	width:6em;
+}
+#colorTool {
+	font-size:0;
+}
+#colorTool div {
+	font-size:1rem;
+}
+.side {
+	box-sizing: border-box;
+	width: calc(50% - 20px);
+	display: inline-block;
+	margin: 10px;
+	padding: 5px;
+	float: left;
+}
+.dropdown {
+	border: 5px solid black;
+	border-radius: 10px;
+	display:none;
+}
+.side h2 {
+	margin-top: 0;
+	margin-bottom: 0;
+	text-align: center;
+}
+.side hr {
+	border-top: 2px solid black;
+}
+#fileinput {
+	background-color:#00ff00;
+	padding:.5em;
+}
+#fileinput::after {
+	content: "";
+	clear: both;
+	display: table;
+}
+#fileinput span {
+	width:33%;
+	display: inline-block;
+	margin:0px;
+	padding:0px;
+	float:left;
+}
+#bpname {
+	text-align:center;
+}
+#filespan {
+	text-align:right;
+}
+#bp, #item {
+	display:none
+}
+#massConverterBttn, #DL{
+	font-family: OCR-A, monospace;
+	font-size:1em;
+}
+#fileinput label, input[type=button], button{
+	background-color: #5555ee;
+	padding:.25em;
+	color: white;
+	border-radius: 5px;
+	border: 1px ridge black;
+	height: auto;
+}
+
+#fileinput label:hover, input[type=button]:hover,button:hover {
+	background-color: #ee5555;
+	color: white;
+}

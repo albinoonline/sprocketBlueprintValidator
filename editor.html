@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<!--
+	Author Name: Albino
+-->
+<head>
+	<meta charset="utf-8" />
+	<title>Albino's Blueprint Validator</title>
+	<link href="css.css" rel="stylesheet" />
+	<script src='editor.js'></script>
+</head>
+<body>
+	<div id='pagewrapper'>
+		<header>
+			<h1>Albino's Blueprint Validator</h1>
+			
+			<a href="https://github.com/albinoonline/">Browse on Github</a> <a href="https://www.reddit.com/user/albinocreeper">u/albinocreeper on reddit</a>
+			<a id="floatLeft" href="https://www.reddit.com/user/comyk79">Thanks to u/comyk79 for assisting me with vector math.</a>
+		</header>
+		<div id="fileinput">
+			<span id="bpspan">
+				<label for="bp">Select Blueprint's Here</label>
+				<input type="file" id="bp" name="bp" accept='.blueprint' multiple>
+			</span>
+			
+			<span id="bpname">No Blueprints Selected</span>
+			<span id="filespan">
+				<input type="button" id="errorbttn" value="Clear Errors"/>
+			</span>
+		</div><!-- end fileinput -->
+		
+		<div id="error"></div>
+		<p>This is a pre release that will allow you to check for your effective armor protection, just in case i go up in a blazing ball of fire before the tool is finished</p>
+		<!--
+		<section id="Par">
+			<h3>Set Par values, Scores will be given as an absolute, and a percentage of par.</h3>
+			<p>
+				<label for="parWeight">Maximum Weight:</label>
+				<input type="number" id="parWeight" name="parWeight" min="0" value="9999" max="9999"/>
+			</p>
+			<p>
+				<label for="parWidth">Maximum Width:</label>
+				<input type="number" id="parWidthMax" name="parWidth" min="0" value="9999" max="9999"/>
+			</p>
+			<p>
+				<label for="parLength">Maximum Length:</label>
+				<input type="number" id="parLength" name="parLength" min="0" value="9999" max="9999"/>
+			</p>
+			<p>
+				<label for="parFuel">Minimum Fuel (total):</label>
+				<input type="number" id="parFuel" name="parFuel" min="0" value="0" max="9999"/>
+			</p>
+			<p>
+				<label for="parFuelI">Minimum Fuel (Internal):</label>
+				<input type="number" id="parFuelI" name="parFuelI" min="0" value="0" max="9999"/>
+			</p>
+			<p>
+				<label for="parGunD">Minimum Gun Depression:</label>
+				<input type="number" id="parGunD" name="parGunD" min="0" value="0" max="9999"/>
+			</p>
+			<p>VALID ENGINES GO HERE</p>
+			<p>VALID CREW GO HERE</p>
+			<p>VALID CANNONS GO HERE</p>
+			<p>AMMO MINIMUMS GO HERE</p>
+			<p>
+				<label for="parPlate">Minimum Plate Thickness:</label>
+				<input type="number" id="parPlate" name="parPlate" min="0" value="0" max="9999"/>
+			</p>
+			<p>
+				<label for="parFrontH">Minimum Front Hull Thickness:</label>
+				<input type="number" id="parFrontH" name="parFrontH" min="0" value="0" max="9999"/>
+			</p>
+			<p>
+				<label for="parSideH">Minimum Side Hull Thickness:</label>
+				<input type="number" id="parSideH" name="parSideH" min="0" value="0" max="9999"/>
+			</p>
+			<p>
+				<label for="parRearH">Minimum Rear Hull Thickness:</label>
+				<input type="number" id="parRearH" name="parRearH" min="0" value="0" max="9999"/>
+			</p>
+			<p>
+				<label for="parDeckH">Minimum Deck Hull Thickness:</label>
+				<input type="number" id="parDeckH" name="parDeckH" min="0" value="0" max="9999"/>
+			</p>
+			<p>
+				<label for="parBellyH">Minimum Belly Hull Thickness:</label>
+				<input type="number" id="parBellyH" name="parBellyH" min="0" value="0" max="9999"/>
+			</p>
+			<p>
+				<label for="parFrontT">Minimum Front Turret Thickness:</label>
+				<input type="number" id="parFrontT" name="parFrontT" min="0" value="0" max="9999"/>
+			</p>
+			<p>
+				<label for="parSideT">Minimum Side Turret Thickness:</label>
+				<input type="number" id="parSideT" name="parSideT" min="0" value="0" max="9999"/>
+			</p>
+			<p>
+				<label for="parRearT">Minimum Rear Turret Thickness:</label>
+				<input type="number" id="parRearT" name="parRearT" min="0" value="0" max="9999"/>
+			</p>
+			<p>
+				<label for="parDeckT">Minimum Deck Turret Thickness:</label>
+				<input type="number" id="parDeckT" name="parDeckT" min="0" value="0" max="9999"/>
+			</p>
+			<p>
+				<label for="parBellyT">Minimum Belly Turret Thickness:</label>
+				<input type="number" id="parBellyT" name="parBellyT" min="0" value="0" max="9999"/>
+			</p>
+		</section>
+		-->
+		<div id="output"></div>
+		<section class="side">
+			<h2>Unused</h2>
+			<div id="blocklist">
+				
+			</div>
+		</section>
+		<section class="side">
+			<h2>Data Dump</h2>
+			<div id="data">
+				
+			</div>
+		</section>
+	</div>
+</body>
+</html>
