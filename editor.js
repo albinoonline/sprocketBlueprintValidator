@@ -405,7 +405,7 @@ window.onload = function() {
 		///Display note: armor appears to be appears to be x=side y=top z=front
 		///armor object format {min:0,xN:0,xP:0,yN:0,yP:0,zN:0,zP:0}
 		console.log("temp display");
-		console.log(hullArmor);
+		console.log(turretArmor);
 		///temporary display:
 		//hullArmor = {min:5000,xN:5000,xP:5000,yN:5000,yP:5000,zN:5000,zP:5000};//save effective armor
 		//turretArmor = {min:5000,xN:5000,xP:5000,yN:5000,yP:5000,zN:5000,zP:5000};//save effective armor
@@ -421,7 +421,7 @@ window.onload = function() {
 		Abs:${turretArmor.min}<br/>
 		Front:${turretArmor.zP}<br/>
 		Rear:${turretArmor.zN}<br/>
-		Side:${turretArmor.xP}/${hullArmor.xN}<br/>
+		Side:${turretArmor.xP}/${turretArmor.xN}<br/>
 		Top:${turretArmor.yP}<br/>
 		Bottom:${turretArmor.yN}`;
 		
