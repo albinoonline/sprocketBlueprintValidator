@@ -110,10 +110,14 @@ window.onload = function() {
 	
 	
 	async function BPparse(){//this function turns the uploaded file into usable data and shoves in blueprint
+		//get the json of the file
 		let file = Bpinput.files[0];
 		let text = await file.text();
 		let data = JSON.parse(text);
+		//update blueprint
 		blueprint = data;
+		//reset file input
+		Bpinput.value="";
 		return data;
 	}
 		
