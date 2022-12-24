@@ -384,10 +384,10 @@ window.onload = function() {
 		let height = farthestUpward;
 		
 		miscData.innerHTML+="Name= "+name+"<br/>";
-		miscData.innerHTML+="Weight= "+weight+"T"+"<br/>"
-		miscData.innerHTML+="Length= "+length+"<br/>"
-		miscData.innerHTML+="width= "+width+" raw or "+widthHullAndTrack+"<br/>"
-		miscData.innerHTML+="Height= "+height+"<br/>"
+		miscData.innerHTML+="Weight= "+weight+"T"+"<br/>";
+		miscData.innerHTML+="Length= "+length+"m<br/>"
+		miscData.innerHTML+="width= "+width+"m raw or "+widthHullAndTrack+"m simplified<br/>"
+		miscData.innerHTML+="Height= "+height+"m<br/>"
 		miscData.innerHTML+=fuel[0]+fuel[1]+" liters of fuel, "+fuel[0]+" of which is internal."+"<br/>"
 		miscData.innerHTML+="Engine= "+engine+"<br/>"
 		miscData.innerHTML+="Transmission= "+transmission+"<br/>"
@@ -401,29 +401,29 @@ window.onload = function() {
 		//ammo
 		miscData.innerHTML+="ammo:"+"<br/>"
 		for(let i in ammo){
-			miscData.innerHTML+="&emsp;"+i+": "+ammo[i]+"<br/>"
+			miscData.innerHTML+="&emsp;"+i+": "+ammo[i]+" rounds<br/>"
 		}
 		//crew
 		miscData.innerHTML+="crew:"+"<br/>"
 		for(let i in crew){
-			miscData.innerHTML+="&emsp;"+i+": "+crew[i]+"<br/>"
+			miscData.innerHTML+="&emsp;"+i+": "+crew[i]+"m^3<br/>"
 		}
 		//armor
 		miscData.innerHTML+=`Hull Armor: <br/>
-		&emsp;Lowest:${hullArmor.min}<br/>
-		&emsp;Front:${hullArmor.zP}<br/>
-		&emsp;Rear:${hullArmor.zN}<br/>
-		&emsp;Side:${hullArmor.xP}/${hullArmor.xN}<br/>
-		&emsp;Top:${hullArmor.yP}<br/>
-		&emsp;Bottom:${hullArmor.yN}<br/>`;
+		&emsp;Lowest:${hullArmor.min}mm<br/>
+		&emsp;Front:${hullArmor.zP}mm<br/>
+		&emsp;Rear:${hullArmor.zN}mm<br/>
+		&emsp;Side:${hullArmor.xP}mm/${hullArmor.xN}mm<br/>
+		&emsp;Top:${hullArmor.yP}mm<br/>
+		&emsp;Bottom:${hullArmor.yN}mm<br/>`;
 		
 		miscData.innerHTML+=`Turret Armor: <br/>
-		&emsp;Lowest:${turretArmor.min}<br/>
-		&emsp;Front:${turretArmor.zP}<br/>
-		&emsp;Rear:${turretArmor.zN}<br/>
-		&emsp;Side:${turretArmor.xP}/${turretArmor.xN}<br/>
-		&emsp;Top:${turretArmor.yP}<br/>
-		&emsp;Bottom:${turretArmor.yN}`;
+		&emsp;Lowest:${turretArmor.min}mm<br/>
+		&emsp;Front:${turretArmor.zP}mm<br/>
+		&emsp;Rear:${turretArmor.zN}mm<br/>
+		&emsp;Side:${turretArmor.xP}mm/${turretArmor.xN}mm<br/>
+		&emsp;Top:${turretArmor.yP}mm<br/>
+		&emsp;Bottom:${turretArmor.yN}mm<br/>`;
 		
 		//parts
 		miscData.innerHTML+="parts:"+"<br/>"
