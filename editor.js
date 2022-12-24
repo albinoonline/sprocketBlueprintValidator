@@ -29,12 +29,7 @@ window.onload = function() {
 	});
 
 	Bpinput.addEventListener("change", function(){BPfill(BPparse());});//the file input for bp
-	
-	//dropdowns
-	for (let i of dropdowns){
-		i.addEventListener("click", function(){dropdown(i);});
-	}
-		
+
 	///functions
 	function errorLog(text){
 		//0 contains the error, and 1 contains the count
@@ -53,24 +48,6 @@ window.onload = function() {
 		error.innerHTML="";
 		for(let i =0; i<errors[0].length;i++){
 			error.innerHTML+=`<p class="small">[${errors[1][i]}]${errors[0][i]}</p>`;
-		}
-	}
-	
-	function dropdown(Htag){//operates the dropdowns
-		///this is jank and needs to be redone
-		//from the Htag we need to go to parent, then to the first div child, wich should be the 2nd child
-		let div = Htag.parentElement.children[1];
-		// now er need to know whether to expand or reduce the child
-		if(Htag.innerHTML.endsWith("▼")){
-			//switch symbol
-			Htag.innerHTML = Htag.innerHTML.replace("▼","▲");
-			//set display
-			div.style.display = "block";
-		} else {
-			//switch symbol
-			Htag.innerHTML = Htag.innerHTML.replace("▲","▼");
-			//set display
-			div.style.display = "none";
 		}
 	}
 	
@@ -110,6 +87,8 @@ window.onload = function() {
 	
 	
 	async function BPparse(){//this function turns the uploaded file into usable data and shoves in blueprint
+		//clear output
+		miscData.innerHTML="";
 		//get the json of the file
 		let file = Bpinput.files[0];
 		let text = await file.text();
@@ -182,7 +161,8 @@ window.onload = function() {
 			//different logic for different types
 			switch (data.blueprints[i].id) {
 				case "Compartment"://the bits of hull, turret ect
-				{///blocking for potential future non free-form detection, if looking for points fails
+				if (parsedData.compartment != null){
+					//we are freeform
 					//save armor values
 					armor = {min:5000,xN:5000,xP:5000,yN:5000,yP:5000,zN:5000,zP:5000};
 					//are we a turret?
@@ -287,6 +267,9 @@ window.onload = function() {
 					///Display note: armor appears to be appears to be x=side y=top z=front
 					///armor object format {min:0,xN:0,xP:0,yN:0,yP:0,zN:0,zP:0}
 					
+				}else {
+					//we arent freeform
+					errorLog(`Error: Tank "${name}" Compartment not freeform`);
 				}
 				break;
 				case "SS"://i dunno what this is, if its ever not these i want to know.
@@ -295,27 +278,19 @@ window.onload = function() {
 					}
 				break;
 				case "TRK"://Track! we need to check length and width
+					//get pho track width
 					widthHullAndTrack = parsedData.separation+2*parsedData.belt.x;
-					errorLog("Track Width:"+widthHullAndTrack);///throw an "error" for now
 					///update farthest forward/backward
 				break;
 				case "ENG"://engine is easy, displacment+count
 					engine = parsedData.cylinderDisplacement*parsedData.cylinders+"L V"+parsedData.cylinders;
-					errorLog("Engine:"+engine);///throw an "error" for now
 				break;
 				case "TSN"://tranny, just a gear count
 					transmission=(parsedData.d.length+parsedData.r.length)+" Speed transmission ("+parsedData.d.length+"+"+parsedData.r.length+")";
-					errorLog("Transmission:"+transmission);///throw an "error" for now
 				break;
 				case "FLT"://Fuel
 					//update fuel
 					fuel[0]=parsedData.L;
-					errorLog(fuel[0]+fuel[1]+" liters of fuel, "+fuel[0]+" of which is internal.");///throw an "error" for now
-				break;
-				case "PTJ"://paintjob, why not
-					if (parsedData.colourMap == null) {
-						errorLog(data.name+" is unpainted, shame them");
-					}
 				break;
 				case "CNN"://what guns are installed?
 					//loop through all cannons
@@ -325,7 +300,7 @@ window.onload = function() {
 						//add all lengths
 						gun.segments.forEach(e => barrel+=e.len);
 						//get the name of the gun
-						let gunName =gun.caliber+"X"+gun.breechLength+"mmNL"+(barrel*1000);
+						let gunName =gun.caliber+"X"+gun.breechLength+"mm BL"+(barrel*1000);
 						//add to the cannons object
 						if (typeof cannons[gunName] == "undefined") {
 							//new part
@@ -351,7 +326,7 @@ window.onload = function() {
 						}
 					}
 				break;
-				case "GMT":///this is gunmount, list each cannon and its aim limits
+				case "GMT"://this is gunmount, list each cannon and its aim limits
 					//loop through all cannons
 					for (let j in parsedData) {
 						let gun = parsedData[j].Blueprint;//way to long to type
@@ -389,46 +364,72 @@ window.onload = function() {
 						crew["all"]+=parsedData.seats[j].spaceAlloc;
 					}
 				break;
-				case "FDR":///what?
-					//console.log("'FDR':");
-					//console.log(parsedData);
+				case "PTJ"://paintjob i have nothing to put here
+				case "FDR"://dont know what this is, only appears sometimes
 				break;
 				default:
 				errorLog("DA FUQ IS A " + data.blueprints[i].id+"?");
 			}//end switch
 		}//end blueprints loop
 		
-		//log shit
-		console.log("farthestSide1: "+farthestSide1);
-		console.log("farthestSide2: "+farthestSide2);
-		console.log("farthestUpward: "+farthestUpward);
-		console.log("farthestForward: "+farthestForward);
-		console.log("farthestBackward: "+farthestBackward);
 		
+		//dun depression becouse who cares about left and right AZI
+		let lowestDepression=-90;
+		for(let i in aim){
+			lowestDepression =Math.max(lowestDepression,aim[i].down);
+		}
 		
-		///Display note: armor appears to be appears to be x=side y=top z=front
-		///armor object format {min:0,xN:0,xP:0,yN:0,yP:0,zN:0,zP:0}
-		console.log("temp display");
-		console.log(turretArmor);
-		///temporary display:
-		//hullArmor = {min:5000,xN:5000,xP:5000,yN:5000,yP:5000,zN:5000,zP:5000};//save effective armor
-		//turretArmor = {min:5000,xN:5000,xP:5000,yN:5000,yP:5000,zN:5000,zP:5000};//save effective armor
-		miscData.innerHTML=`Hull Armor: <br/>
-		Abs:${hullArmor.min}<br/>
-		Front:${hullArmor.zP}<br/>
-		Rear:${hullArmor.zN}<br/>
-		Side:${hullArmor.xP}/${hullArmor.xN}<br/>
-		Top:${hullArmor.yP}<br/>
-		Bottom:${hullArmor.yN}<br/>`;
+		let length = farthestBackward-farthestForward;
+		let width = farthestSide2-farthestSide1;
+		let height = farthestUpward;
+		
+		miscData.innerHTML+="Name= "+name+"<br/>";
+		miscData.innerHTML+="Weight= "+weight+"T"+"<br/>"
+		miscData.innerHTML+="Length= "+length+"<br/>"
+		miscData.innerHTML+="width= "+width+" raw or "+widthHullAndTrack+"<br/>"
+		miscData.innerHTML+="Height= "+height+"<br/>"
+		miscData.innerHTML+=fuel[0]+fuel[1]+" liters of fuel, "+fuel[0]+" of which is internal."+"<br/>"
+		miscData.innerHTML+="Engine= "+engine+"<br/>"
+		miscData.innerHTML+="Transmission= "+transmission+"<br/>"
+		//deal with acumilators
+		//cannons
+		miscData.innerHTML+="cannons:"+"<br/>"
+		for(let i in cannons){
+			miscData.innerHTML+="&emsp;"+i+": "+cannons[i]+"<br/>"
+		}
+		miscData.innerHTML+="Gun depression= "+lowestDepression+"<br/>"
+		//ammo
+		miscData.innerHTML+="ammo:"+"<br/>"
+		for(let i in ammo){
+			miscData.innerHTML+="&emsp;"+i+": "+ammo[i]+"<br/>"
+		}
+		//crew
+		miscData.innerHTML+="crew:"+"<br/>"
+		for(let i in crew){
+			miscData.innerHTML+="&emsp;"+i+": "+crew[i]+"<br/>"
+		}
+		//armor
+		miscData.innerHTML+=`Hull Armor: <br/>
+		&emsp;Lowest:${hullArmor.min}<br/>
+		&emsp;Front:${hullArmor.zP}<br/>
+		&emsp;Rear:${hullArmor.zN}<br/>
+		&emsp;Side:${hullArmor.xP}/${hullArmor.xN}<br/>
+		&emsp;Top:${hullArmor.yP}<br/>
+		&emsp;Bottom:${hullArmor.yN}<br/>`;
 		
 		miscData.innerHTML+=`Turret Armor: <br/>
-		Abs:${turretArmor.min}<br/>
-		Front:${turretArmor.zP}<br/>
-		Rear:${turretArmor.zN}<br/>
-		Side:${turretArmor.xP}/${turretArmor.xN}<br/>
-		Top:${turretArmor.yP}<br/>
-		Bottom:${turretArmor.yN}`;
+		&emsp;Lowest:${turretArmor.min}<br/>
+		&emsp;Front:${turretArmor.zP}<br/>
+		&emsp;Rear:${turretArmor.zN}<br/>
+		&emsp;Side:${turretArmor.xP}/${turretArmor.xN}<br/>
+		&emsp;Top:${turretArmor.yP}<br/>
+		&emsp;Bottom:${turretArmor.yN}`;
 		
+		//parts
+		miscData.innerHTML+="parts:"+"<br/>"
+		for(let i in parts){
+			miscData.innerHTML+="&emsp;"+i+": "+parts[i]+"<br/>"
+		}
 		return; //why not i guess
 	}
 	
