@@ -99,7 +99,9 @@ window.onload = function() {
 		Bpinput.value="";
 		return data;
 	}
-		
+	function roundHundredth(num){
+		return Math.round(num*100)/100;
+	}
 	async function BPfill(lag){//extracts and saves data on the tank
 		//So im not actually editing anything here, witch means i don't have to worry about keeping the result machine readable, since i'm not repackaging it.
 		// wait for data
@@ -150,9 +152,6 @@ window.onload = function() {
 				}
 			}//added to lists end DAT loop
 		}//end ext loop
-		//log accumulators:
-		console.log(parts);
-		console.log("External Fuel:"+fuel[1]);
 		
 		//now onto the blueprints section!
 		//loop blueprint
@@ -178,13 +177,18 @@ window.onload = function() {
 					for (let j in parsedData.compartment.faceMap){
 						let face = parsedData.compartment.faceMap[j];//indexed points of the face
 						let vertecies=[];//temporaraly store verticies
-						let thick =[];//thickness points involved
+						let thick =[2000];//thickness points involved
 						//next we need real points, not indexes
+						
 						for (let e in face){
-							//add thickness
-							thick.push(parsedData.compartment.thicknessMap[face[e]]);
-							//get locations
-							vertecies[e]=points.slice(face[e]*3,face[e]*3+3);
+							let vertexList = points.slice(face[e]*3,face[e]*3+3);
+							//turret bottom plate exception
+							if (vertexList[1]!==0 || !isTurret){
+								//the point is not y=0 or on a turret
+								//add thickness
+								thick.push(parsedData.compartment.thicknessMap[face[e]]);
+							}
+							vertecies[e]=vertexList;
 						}
 						//get minimum thickness off all points (yes points hold thickness)
 						thick = Math.min(...thick);
@@ -300,7 +304,7 @@ window.onload = function() {
 						//add all lengths
 						gun.segments.forEach(e => barrel+=e.len);
 						//get the name of the gun
-						let gunName =gun.caliber+"X"+gun.breechLength+"mm BL"+(barrel*1000);
+						let gunName =gun.caliber+"X"+gun.breechLength+"mm BL"+Math.round(barrel*1000);
 						//add to the cannons object
 						if (typeof cannons[gunName] == "undefined") {
 							//new part
@@ -373,7 +377,7 @@ window.onload = function() {
 		}//end blueprints loop
 		
 		
-		//dun depression becouse who cares about left and right AZI
+		//gun depression becouse who cares about left and right AZI
 		let lowestDepression=-90;
 		for(let i in aim){
 			lowestDepression =Math.max(lowestDepression,aim[i].down);
@@ -384,11 +388,11 @@ window.onload = function() {
 		let height = farthestUpward;
 		
 		miscData.innerHTML+="Name= "+name+"<br/>";
-		miscData.innerHTML+="Weight= "+weight+"T"+"<br/>";
-		miscData.innerHTML+="Length= "+length+"m<br/>"
-		miscData.innerHTML+="width= "+width+"m raw or "+widthHullAndTrack+"m simplified<br/>"
-		miscData.innerHTML+="Height= "+height+"m<br/>"
-		miscData.innerHTML+=fuel[0]+fuel[1]+" liters of fuel, "+fuel[0]+" of which is internal."+"<br/>"
+		miscData.innerHTML+="Weight= "+roundHundredth(weight)+"T"+"<br/>";
+		miscData.innerHTML+="Length= "+roundHundredth(length)+"m<br/>"
+		miscData.innerHTML+="width= "+roundHundredth(width)+"m raw hull or "+roundHundredth(widthHullAndTrack)+"m simplified track<br/>"
+		miscData.innerHTML+="Height= "+roundHundredth(height)+"m<br/>"
+		miscData.innerHTML+=roundHundredth(fuel[0]+fuel[1])+" liters of fuel, "+roundHundredth(fuel[0])+" of which is internal."+"<br/>"
 		miscData.innerHTML+="Engine= "+engine+"<br/>"
 		miscData.innerHTML+="Transmission= "+transmission+"<br/>"
 		//deal with acumilators
@@ -397,7 +401,7 @@ window.onload = function() {
 		for(let i in cannons){
 			miscData.innerHTML+="&emsp;"+i+": "+cannons[i]+"<br/>"
 		}
-		miscData.innerHTML+="Gun depression= "+lowestDepression+"<br/>"
+		miscData.innerHTML+="Gun depression= "+roundHundredth(lowestDepression)+"<br/>"
 		//ammo
 		miscData.innerHTML+="ammo:"+"<br/>"
 		for(let i in ammo){
@@ -410,20 +414,20 @@ window.onload = function() {
 		}
 		//armor
 		miscData.innerHTML+=`Hull Armor: <br/>
-		&emsp;Lowest:${hullArmor.min}mm<br/>
-		&emsp;Front:${hullArmor.zP}mm<br/>
-		&emsp;Rear:${hullArmor.zN}mm<br/>
-		&emsp;Side:${hullArmor.xP}mm/${hullArmor.xN}mm<br/>
-		&emsp;Top:${hullArmor.yP}mm<br/>
-		&emsp;Bottom:${hullArmor.yN}mm<br/>`;
+		&emsp;Lowest:${roundHundredth(hullArmor.min)}mm<br/>
+		&emsp;Front:${roundHundredth(hullArmor.zP)}mm<br/>
+		&emsp;Rear:${roundHundredth(hullArmor.zN)}mm<br/>
+		&emsp;Side:${roundHundredth(hullArmor.xP)}mm/${roundHundredth(hullArmor.xN)}mm<br/>
+		&emsp;Top:${roundHundredth(hullArmor.yP)}mm<br/>
+		&emsp;Bottom:${roundHundredth(hullArmor.yN)}mm<br/>`;
 		
 		miscData.innerHTML+=`Turret Armor: <br/>
-		&emsp;Lowest:${turretArmor.min}mm<br/>
-		&emsp;Front:${turretArmor.zP}mm<br/>
-		&emsp;Rear:${turretArmor.zN}mm<br/>
-		&emsp;Side:${turretArmor.xP}mm/${turretArmor.xN}mm<br/>
-		&emsp;Top:${turretArmor.yP}mm<br/>
-		&emsp;Bottom:${turretArmor.yN}mm<br/>`;
+		&emsp;Lowest:${roundHundredth(turretArmor.min)}mm<br/>
+		&emsp;Front:${roundHundredth(turretArmor.zP)}mm<br/>
+		&emsp;Rear:${roundHundredth(turretArmor.zN)}mm<br/>
+		&emsp;Side:${roundHundredth(turretArmor.xP)}mm/${turretArmor.xN}mm<br/>
+		&emsp;Top:${roundHundredth(turretArmor.yP)}mm<br/>
+		&emsp;Bottom:${roundHundredth(turretArmor.yN)}mm<br/>`;
 		
 		//parts
 		miscData.innerHTML+="parts:"+"<br/>"
