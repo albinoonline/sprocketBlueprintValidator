@@ -1,11 +1,10 @@
 /*
 ToDo:
-DONT FORGET WEIGHT
-CHECK IF THE INTERNAL SPACE IS EXEEDED?
+finish thinnest plate checker, add thickest plate checker?
 This release:
+rush job thinnest plate checker
 */
 window.onload = function() {
-	
 	//define things
 	//find things on the page
 	const Bpinput = document.getElementById('bp');//bp input
@@ -13,9 +12,16 @@ window.onload = function() {
 	const errorbttn = document.getElementById('errorbttn');//top banner for use with errors
 	const dropdowns = document.getElementsByClassName("dropdown");//dropdowns
 	const miscData = document.getElementById("data");//second output
-	
 	const outputDiv = document.getElementById('output');//output div
-
+	
+	//canvases
+	const frontViewCanvas = document.getElementById('frontView');
+	const frontView = frontViewCanvas.getContext("2d");
+	///canvas adjustments
+	let canvasScale=90;
+	let canvasXOffset=150;
+	let canvasYOffset=250;
+	
 	var blueprint = {};//for storing the BP
 	var errors = [[],[]];//array for storing errors
 	
@@ -89,6 +95,7 @@ window.onload = function() {
 	async function BPparse(){//this function turns the uploaded file into usable data and shoves in blueprint
 		//clear output
 		miscData.innerHTML="";
+		frontView.clearRect(0, 0, frontView.width, frontView.height);
 		//get the json of the file
 		let file = Bpinput.files[0];
 		let text = await file.text();
@@ -102,6 +109,37 @@ window.onload = function() {
 	function roundHundredth(num){
 		return Math.round(num*100)/100;
 	}
+	
+	///AI section
+	function removeDuplicatePoints(points) {
+		return points.filter((point, index) => {
+			return index === points.findIndex(p => p[0] === point[0] && p[1] === point[1]);
+		});
+	}
+	function orderClockwise(points) {
+		// First, calculate the average position of all the points
+		let xSum = 0;
+		let ySum = 0;
+		for (let point of points) {
+			xSum += point[0];
+			ySum += point[1];
+		}
+		const xAvg = xSum / points.length;
+		const yAvg = ySum / points.length;
+
+		// Next, sort the points based on their angle relative to the average position
+		points.sort((a, b) => {
+			const angleA = Math.atan2(a[1] - yAvg, a[0] - xAvg);
+			const angleB = Math.atan2(b[1] - yAvg, b[0] - xAvg);
+			return angleA - angleB;
+		});
+
+		// Finally, return the sorted array of points
+		return points;
+	}
+	//end ai section
+	
+	
 	async function BPfill(lag){//extracts and saves data on the tank
 		//So im not actually editing anything here, witch means i don't have to worry about keeping the result machine readable, since i'm not repackaging it.
 		// wait for data
@@ -132,6 +170,7 @@ window.onload = function() {
 		let ammo = {};//(Cal)X(caselength):count
 		let crew = {"all":0};//role:alloted space total
 		let aim = [];//X:[Left,Right,Down]
+		
 		
 		// go through 'ext' the list of things placed on the compartments, like hatches and other bobbles, including gun mounts, but not the info on the guns
 		for (let i in data.ext) {
@@ -164,6 +203,16 @@ window.onload = function() {
 					//we are freeform
 					//save armor values
 					armor = {min:5000,xN:5000,xP:5000,yN:5000,yP:5000,zN:5000,zP:5000};
+					//weakest plate logs
+					let weakestFront=[[0,0,0],[0,0,0],[0,0,0]];
+					let weakestTop=[[0,0,0],[0,0,0],[0,0,0]];
+					let weakestBack=[[0,0,0],[0,0,0],[0,0,0]];
+					let weakestBottom=[[0,0,0],[0,0,0],[0,0,0]];
+					let weakestSide=[[0,0,0],[0,0,0],[0,0,0]];
+					let weakestSideInverted=[[0,0,0],[0,0,0],[0,0,0]];
+					//turret location
+					let turretPos=[0,0,0];
+					
 					//are we a turret?
 					let isTurret=parsedData.turret !=null;
 					let points =parsedData.compartment.points;//quick access to points
@@ -172,7 +221,10 @@ window.onload = function() {
 						//we have a turret
 						//set the font back and side values to the turret ring armor
 						armor.zP=armor.zN=armor.xP=armor.xN=parsedData.turret.ringArmour;
+						//get the turret position
+						turretPos=parsedData.pos;
 					}
+					
 					//go through faceMap, they are indexed by face
 					for (let j in parsedData.compartment.faceMap){
 						let face = parsedData.compartment.faceMap[j];//indexed points of the face
@@ -197,40 +249,92 @@ window.onload = function() {
 						
 						//is the armor thinner than older faces?
 						armor.min = Math.min(armor.min, thick);
+						
+						///Display note: armor appears to be appears to be x=side y=top z=front
+						///armor object format {min:0,xN:0,xP:0,yN:0,yP:0,zN:0,zP:0}
+						
 						//next, the x value, is is negative?
-						if (angles[0] <0){
-							//yes 
+						if (angles[0] <0){//side
 							//is the effective armor thinner than ones pointing that way?
 							armor.xN=Math.min(armor.xN,Math.abs(thick/Math.sin(angles[0])));
-						} else {
-							//no
+						} else {//side inverted
 							//is the effective armor thinner than ones pointing that way?
 							armor.xP=Math.min(armor.xP,thick/Math.sin(angles[0]));
 						}
 						//next, the y value, is is negative?
-						if (angles[1] <0){
-							//yes 
+						if (angles[1] <0){//bottom
 							//is the effective armor thinner than ones pointing that way?
 							armor.yN=Math.min(armor.yN,Math.abs(thick/Math.sin(angles[1])));
-						} else {
-							//no
+						} else {//top
 							//is the effective armor thinner than ones pointing that way?
 							armor.yP=Math.min(armor.yP,thick/Math.sin(angles[1]));
 						}
 						//next, the z value, is is negative?
-						if (angles[2] <0){
-							//yes 
+						if (angles[2] <0){//back
 							//is the effective armor thinner than ones pointing that way?
 							armor.zN=Math.min(armor.zN,Math.abs(thick/Math.sin(angles[2])));
-						} else {
-							//no
+						} else {//front
+							///canvas party
+							let x=0;
+							let y=1;
+							
+							let turretX=0;
+							let turretY=0;
+							let points2d=[];
+							//get the 2d "image"
+							//get the points we want to play with (smash 3d to 2d)
+							for (let v in vertecies){
+								points2d[v] = [vertecies[v][x],vertecies[v][y]];
+							}
+							//remove redundant points
+							let newPoints=removeDuplicatePoints(points2d);
+							//order points
+							points2d = orderClockwise(newPoints);
+							
+							if (isTurret){
+								turretX=turretPos[x]*canvasScale;
+								turretY=-turretPos[y]*canvasScale;
+							}
+							//draw points
+							frontView.beginPath();
+							frontView.moveTo(turretX+points2d[0][x]*canvasScale+canvasXOffset,turretY+canvasYOffset-points2d[0][y]*canvasScale);
+							for (let p in points2d){
+								frontView.lineTo(turretX+points2d[p][x]*canvasScale+canvasXOffset,turretY+canvasYOffset-points2d[p][y]*canvasScale);
+							}
+							frontView.closePath();
+							frontView.stroke();
+							
+							let effectiveThickness=thick/Math.sin(angles[2]);
 							//is the effective armor thinner than ones pointing that way?
-							armor.zP=Math.min(armor.zP,thick/Math.sin(angles[2]));
+							if (armor.zP >= effectiveThickness){
+								//is thinner update stats
+								armor.zP=effectiveThickness;
+								weakestFront=points2d;
+							}//not thinner, we dont care
 						}
+					}//end face loop
+					//recreate weakest plates with fill
+					let x=0;
+					let y=1;
+					let turretX=0;
+					let turretY=0;
+					points2d= weakestFront;
+					console.log(points2d);
+					if (isTurret){
+						turretX=turretPos[x]*canvasScale;
+						turretY=-turretPos[y]*canvasScale;
 					}
+					//draw points
+					frontView.beginPath();
+					frontView.moveTo(turretX+points2d[0][x]*canvasScale+canvasXOffset,turretY+canvasYOffset-points2d[0][y]*canvasScale);
+					for (let p in points2d){
+						frontView.lineTo(turretX+points2d[p][x]*canvasScale+canvasXOffset,turretY+canvasYOffset-points2d[p][y]*canvasScale);
+					}
+					frontView.fillStyle = "red";
+					frontView.fill();
+					
 					//add to hull or turret accumulator:
 					if (isTurret){
-						console.log(parsedData);
 						//add to turret armor, have to check lowest in case of multiple turrets
 						for(let j in turretArmor){
 							turretArmor[j]=Math.min(turretArmor[j], armor[j]);
@@ -268,8 +372,6 @@ window.onload = function() {
 							}//end switch
 						}//end point loop
 					}//end hull/armor split
-					///Display note: armor appears to be appears to be x=side y=top z=front
-					///armor object format {min:0,xN:0,xP:0,yN:0,yP:0,zN:0,zP:0}
 					
 				}else {
 					//we arent freeform
@@ -425,7 +527,7 @@ window.onload = function() {
 		&emsp;Lowest:${roundHundredth(turretArmor.min)}mm<br/>
 		&emsp;Front:${roundHundredth(turretArmor.zP)}mm<br/>
 		&emsp;Rear:${roundHundredth(turretArmor.zN)}mm<br/>
-		&emsp;Side:${roundHundredth(turretArmor.xP)}mm/${turretArmor.xN}mm<br/>
+		&emsp;Side:${roundHundredth(turretArmor.xP)}mm/${roundHundredth(turretArmor.xN)}mm<br/>
 		&emsp;Top:${roundHundredth(turretArmor.yP)}mm<br/>
 		&emsp;Bottom:${roundHundredth(turretArmor.yN)}mm<br/>`;
 		

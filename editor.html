@@ -31,90 +31,23 @@
 		
 		<div id="error"></div>
 		<p>This is a pre release that will allow you to check for your effective armor protection, just in case i go up in a blazing ball of fire before the tool is finished</p>
-		<!--
-		<section id="Par">
-			<h3>Set Par values, Scores will be given as an absolute, and a percentage of par.</h3>
-			<p>
-				<label for="parWeight">Maximum Weight:</label>
-				<input type="number" id="parWeight" name="parWeight" min="0" value="9999" max="9999"/>
-			</p>
-			<p>
-				<label for="parWidth">Maximum Width:</label>
-				<input type="number" id="parWidthMax" name="parWidth" min="0" value="9999" max="9999"/>
-			</p>
-			<p>
-				<label for="parLength">Maximum Length:</label>
-				<input type="number" id="parLength" name="parLength" min="0" value="9999" max="9999"/>
-			</p>
-			<p>
-				<label for="parFuel">Minimum Fuel (total):</label>
-				<input type="number" id="parFuel" name="parFuel" min="0" value="0" max="9999"/>
-			</p>
-			<p>
-				<label for="parFuelI">Minimum Fuel (Internal):</label>
-				<input type="number" id="parFuelI" name="parFuelI" min="0" value="0" max="9999"/>
-			</p>
-			<p>
-				<label for="parGunD">Minimum Gun Depression:</label>
-				<input type="number" id="parGunD" name="parGunD" min="0" value="0" max="9999"/>
-			</p>
-			<p>VALID ENGINES GO HERE</p>
-			<p>VALID CREW GO HERE</p>
-			<p>VALID CANNONS GO HERE</p>
-			<p>AMMO MINIMUMS GO HERE</p>
-			<p>
-				<label for="parPlate">Minimum Plate Thickness:</label>
-				<input type="number" id="parPlate" name="parPlate" min="0" value="0" max="9999"/>
-			</p>
-			<p>
-				<label for="parFrontH">Minimum Front Hull Thickness:</label>
-				<input type="number" id="parFrontH" name="parFrontH" min="0" value="0" max="9999"/>
-			</p>
-			<p>
-				<label for="parSideH">Minimum Side Hull Thickness:</label>
-				<input type="number" id="parSideH" name="parSideH" min="0" value="0" max="9999"/>
-			</p>
-			<p>
-				<label for="parRearH">Minimum Rear Hull Thickness:</label>
-				<input type="number" id="parRearH" name="parRearH" min="0" value="0" max="9999"/>
-			</p>
-			<p>
-				<label for="parDeckH">Minimum Deck Hull Thickness:</label>
-				<input type="number" id="parDeckH" name="parDeckH" min="0" value="0" max="9999"/>
-			</p>
-			<p>
-				<label for="parBellyH">Minimum Belly Hull Thickness:</label>
-				<input type="number" id="parBellyH" name="parBellyH" min="0" value="0" max="9999"/>
-			</p>
-			<p>
-				<label for="parFrontT">Minimum Front Turret Thickness:</label>
-				<input type="number" id="parFrontT" name="parFrontT" min="0" value="0" max="9999"/>
-			</p>
-			<p>
-				<label for="parSideT">Minimum Side Turret Thickness:</label>
-				<input type="number" id="parSideT" name="parSideT" min="0" value="0" max="9999"/>
-			</p>
-			<p>
-				<label for="parRearT">Minimum Rear Turret Thickness:</label>
-				<input type="number" id="parRearT" name="parRearT" min="0" value="0" max="9999"/>
-			</p>
-			<p>
-				<label for="parDeckT">Minimum Deck Turret Thickness:</label>
-				<input type="number" id="parDeckT" name="parDeckT" min="0" value="0" max="9999"/>
-			</p>
-			<p>
-				<label for="parBellyT">Minimum Belly Turret Thickness:</label>
-				<input type="number" id="parBellyT" name="parBellyT" min="0" value="0" max="9999"/>
-			</p>
-		</section>
-		-->
+		<div id="canvases">
+			<h2>Armor Displays:</h2>
+			<p>This sections shows the weakest armor plate frontally, its been rushed out to help find weak frontal plates, a better version will come soon(tm). Note: it just shows the current weakest plate for each compartment, and just one it encounters, others that are tied for weakest are not shown</p>
+			<canvas id="frontView" height="300"></canvas>
+		</div>
 		<div id="output"></div>
 		<section class="side">
 			<h2>PATCH NOTES:</h2>
+			<h3>12/30/22</h3>
+			<h4>Tool Update:</h4>
+			<p>A canvas (generated image) of the tank is now created, this image shows the weakest plate frontally, or a plate that is tied for the weakest, note this does not display the turret ring, which may be weaker than the toughest plate shown</p>
+			<p>The turrets second side armor is now rounded to the nearest hundredth (whoops..., and yes I haven't bothered learning which side is left or right in the code).</p>
+			
 			<h3>12/28/22</h3>
-			<h4>T.E.A.B.A.G. Rule Update:</h4>
+			<h4>T.E.A.B.A.G. 10 Rule Update:</h4>
 			<p>The Aesthetic Appliqué Armour Cheat will now be <b>enabled</b> due to exploits, despite the video saying otherwise.</p>
-			<h4>T.E.A.B.A.G. Rule Clarification/Tool Update:</h4>
+			<h4>T.E.A.B.A.G. 10 Rule Clarification/Tool Update:</h4>
 			<p>On the issue of the bottom turret plate, and weaker roof armor under the turret; Hull roof armor (or turret roof if you want a pancake turret) must be to spec (15mm), but the underside of the turret no longer has to be, the tool will now ignore plates that are both on a turret, and whoos points "up" value are exactly 0 (you can check by selecting the point, and opening the position tab).</p>
 			<p>Note: Mantlet armor does not count as valid armor due to it not changing weight, be sure that the plate(s) behind the mantled are of effective armor, the tool does not read mantlet armor.</p>
 			<h4>Tool Update:</h4>
