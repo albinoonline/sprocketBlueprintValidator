@@ -1,6 +1,7 @@
 /*
 ToDo:
 finish thinnest plate checker, add thickest plate checker?
+add turret rings to canvas draw
 This release:
 rush job thinnest plate checker
 */
@@ -95,7 +96,7 @@ window.onload = function() {
 	async function BPparse(){//this function turns the uploaded file into usable data and shoves in blueprint
 		//clear output
 		miscData.innerHTML="";
-		frontView.clearRect(0, 0, frontView.width, frontView.height);
+		frontView.clearRect(0, 0, frontViewCanvas.width, frontViewCanvas.height);
 		//get the json of the file
 		let file = Bpinput.files[0];
 		let text = await file.text();
