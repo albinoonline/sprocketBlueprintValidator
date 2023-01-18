@@ -23,8 +23,9 @@
 				<input type="file" id="bp" name="bp" accept='.blueprint' multiple>
 			</span>
 			
-			<span id="bpname">No Blueprints Selected</span>
+			<span id="bpname">Batter Than Cake</span>
 			<span id="filespan">
+				<input type="button" id="DL" value="Get .CSV"/>
 				<input type="button" id="errorbttn" value="Clear Errors"/>
 			</span>
 		</div><!-- end fileinput -->
@@ -33,12 +34,17 @@
 		<p>This is a pre release that will allow you to check for your effective armor protection, just in case i go up in a blazing ball of fire before the tool is finished</p>
 		<div id="canvases">
 			<h2>Armor Displays:</h2>
-			<p>This sections shows the weakest armor plate frontally, its been rushed out to help find weak frontal plates, a better version will come soon(tm). Note: it just shows the current weakest plate for each compartment, and just one it encounters, others that are tied for weakest are not shown</p>
+			<p>This sections shows the weakest armor plate frontally, its been rushed out to help find weak frontal plates, a better version will come soon(tm). Note: it just shows the current weakest plate for each compartment, and just one it encounters, others that are tied for weakest are not shown. Note: your if your turret ring is the thinnest armor a turret plate will not be rendered</p>
 			<canvas id="frontView" height="300"></canvas>
 		</div>
 		<div id="output"></div>
 		<section class="side">
 			<h2>PATCH NOTES:</h2>
+			<h3>1/17/23</h3>
+			<h4>Tool Update:</h4>
+			<p>Armor Order is now front side rear, rather than front rear side.</p>
+			<p>Tool now reads twin transmission option.</p>
+			<p>Stat breakdowns are now downloadable as a CSV file, and multiple tanks can now be read at once</p>
 			<h3>12/30/22</h3>
 			<h4>Tool Update:</h4>
 			<p>A canvas (generated image) of the tank is now created, this image shows the weakest plate frontally, or a plate that is tied for the weakest, note this does not display the turret ring, which may be weaker than the toughest plate shown</p>

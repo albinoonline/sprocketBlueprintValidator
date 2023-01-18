@@ -1,7 +1,14 @@
 /*
 ToDo:
-finish thinnest plate checker, add thickest plate checker?
+finish thinnest plate checker:
 add turret rings to canvas draw
+add plate encompass checking flag, flag color plates if the center of one is in another.
+
+make thiness for each side: generalize the render function
+
+overlay the effective thinest plate, as well as overlapping plates, as different colors over every overlay
+
+
 This release:
 rush job thinnest plate checker
 */
@@ -14,18 +21,17 @@ window.onload = function() {
 	const dropdowns = document.getElementsByClassName("dropdown");//dropdowns
 	const miscData = document.getElementById("data");//second output
 	const outputDiv = document.getElementById('output');//output div
-	
+	const DL = document.getElementById('DL');//download button
 	//canvases
 	const frontViewCanvas = document.getElementById('frontView');
 	const frontView = frontViewCanvas.getContext("2d");
 	///canvas adjustments
-	let canvasScale=90;
+	let canvasScale=-90;
 	let canvasXOffset=150;
 	let canvasYOffset=250;
 	
-	var blueprint = {};//for storing the BP
 	var errors = [[],[]];//array for storing errors
-	
+	var CSV="";
 	//add event listeners
 		//clear errros bttn
 	errorbttn.addEventListener("click", function(){
@@ -35,7 +41,17 @@ window.onload = function() {
 		error.innerHTML="";
 	});
 
-	Bpinput.addEventListener("change", function(){BPfill(BPparse());});//the file input for bp
+	DL.addEventListener('click', () => {
+		//make a temp a tag and force download
+		let a = document.createElement('a');
+		let file = new Blob([CSV], {type: 'text/plain'});
+		a.href= URL.createObjectURL(file);
+		a.download = "Tanks.csv";
+		a.click();
+		URL.revokeObjectURL(a.href);
+	});
+	
+	Bpinput.addEventListener("change", function(){BPparse();});//the file input for bp
 
 	///functions
 	function errorLog(text){
@@ -95,17 +111,22 @@ window.onload = function() {
 	
 	async function BPparse(){//this function turns the uploaded file into usable data and shoves in blueprint
 		//clear output
+		console.log("a");
 		miscData.innerHTML="";
 		frontView.clearRect(0, 0, frontViewCanvas.width, frontViewCanvas.height);
-		//get the json of the file
-		let file = Bpinput.files[0];
-		let text = await file.text();
-		let data = JSON.parse(text);
-		//update blueprint
-		blueprint = data;
 		//reset file input
+		//reset CSV
+		CSV=`Name,Weight,Length,Width,Track Width,Height,Engine,Transmission,Fuel Internal,Fuel External,Crew Total,Commander,Gunner,Driver,Loader,Radioman,Passenger,Cannon 1,Ammo 1,Cannon 2,Ammo 2,Cannon 3,Ammo 3,Gun Depression,Hull Min,Hull Front,Hull Side,Hull Inverted Side,Hull Rear,Hull Roof,Hull Floor,Turret Min,Turret Front,Turret Side,Turret Inverted Side,Turret Rear,Turret Roof,Turret Floor,Flags \n`;
+		await Bpinput.files;
+		//get the json of the file and shove into BPfill
+		for (let i = 0; i < Bpinput.files.length; i++){
+			console.log(i);
+			let file = await Bpinput.files[i];
+			let text = await file.text();
+			let data = JSON.parse(text);
+			BPfill(data);
+		}
 		Bpinput.value="";
-		return data;
 	}
 	function roundHundredth(num){
 		return Math.round(num*100)/100;
@@ -159,6 +180,7 @@ window.onload = function() {
 		let farthestSide2 = -10;
 		let engine="";//a written name of the engine
 		let transmission = "";//a written name of the engine
+		let transmissionType = "";//what kind of tranny
 		let hullArmor = {min:5000,xN:5000,xP:5000,yN:5000,yP:5000,zN:5000,zP:5000};//save effective armor
 		let turretArmor = {min:5000,xN:5000,xP:5000,yN:5000,yP:5000,zN:5000,zP:5000};//save effective armor
 		//gimmies, these values are stored simply and dont need to be located
@@ -294,13 +316,13 @@ window.onload = function() {
 							
 							if (isTurret){
 								turretX=turretPos[x]*canvasScale;
-								turretY=-turretPos[y]*canvasScale;
+								turretY=turretPos[y]*canvasScale;
 							}
 							//draw points
 							frontView.beginPath();
-							frontView.moveTo(turretX+points2d[0][x]*canvasScale+canvasXOffset,turretY+canvasYOffset-points2d[0][y]*canvasScale);
+							frontView.moveTo(turretX+points2d[0][x]*canvasScale+canvasXOffset,turretY+canvasYOffset+points2d[0][y]*canvasScale);
 							for (let p in points2d){
-								frontView.lineTo(turretX+points2d[p][x]*canvasScale+canvasXOffset,turretY+canvasYOffset-points2d[p][y]*canvasScale);
+								frontView.lineTo(turretX+points2d[p][x]*canvasScale+canvasXOffset,turretY+canvasYOffset+points2d[p][y]*canvasScale);
 							}
 							frontView.closePath();
 							frontView.stroke();
@@ -323,13 +345,13 @@ window.onload = function() {
 					console.log(points2d);
 					if (isTurret){
 						turretX=turretPos[x]*canvasScale;
-						turretY=-turretPos[y]*canvasScale;
+						turretY=turretPos[y]*canvasScale;
 					}
 					//draw points
 					frontView.beginPath();
-					frontView.moveTo(turretX+points2d[0][x]*canvasScale+canvasXOffset,turretY+canvasYOffset-points2d[0][y]*canvasScale);
+					frontView.moveTo(turretX+points2d[0][x]*canvasScale+canvasXOffset,turretY+canvasYOffset+points2d[0][y]*canvasScale);
 					for (let p in points2d){
-						frontView.lineTo(turretX+points2d[p][x]*canvasScale+canvasXOffset,turretY+canvasYOffset-points2d[p][y]*canvasScale);
+						frontView.lineTo(turretX+points2d[p][x]*canvasScale+canvasXOffset,turretY+canvasYOffset+points2d[p][y]*canvasScale);
 					}
 					frontView.fillStyle = "red";
 					frontView.fill();
@@ -379,9 +401,9 @@ window.onload = function() {
 					errorLog(`Error: Tank "${name}" Compartment not freeform`);
 				}
 				break;
-				case "SS"://i dunno what this is, if its ever not these i want to know.
-					if (data.blueprints[i].data !='{"version":{"Major":0,"Minor":0},"name":"Untitled"}' && data.blueprints[i].data !='{"version":{"Major":0,"Minor":0},"name":""}') {
-						errorLog("Give albino "+data.name+" for study please, it contains whatever blueprints.SS is (don't worry the tool is fine)");
+				case "SS"://transmission in metadata
+					if(data.blueprints[i].metaData == "TT"){
+						transmissionType="Twin ";
 					}
 				break;
 				case "TRK"://Track! we need to check length and width
@@ -479,6 +501,7 @@ window.onload = function() {
 			}//end switch
 		}//end blueprints loop
 		
+		///we have the data
 		
 		//gun depression becouse who cares about left and right AZI
 		let lowestDepression=-90;
@@ -497,7 +520,7 @@ window.onload = function() {
 		miscData.innerHTML+="Height= "+roundHundredth(height)+"m<br/>"
 		miscData.innerHTML+=roundHundredth(fuel[0]+fuel[1])+" liters of fuel, "+roundHundredth(fuel[0])+" of which is internal."+"<br/>"
 		miscData.innerHTML+="Engine= "+engine+"<br/>"
-		miscData.innerHTML+="Transmission= "+transmission+"<br/>"
+		miscData.innerHTML+="Transmission= "+transmissionType+transmission+"<br/>"
 		//deal with acumilators
 		//cannons
 		miscData.innerHTML+="cannons:"+"<br/>"
@@ -519,16 +542,16 @@ window.onload = function() {
 		miscData.innerHTML+=`Hull Armor: <br/>
 		&emsp;Lowest:${roundHundredth(hullArmor.min)}mm<br/>
 		&emsp;Front:${roundHundredth(hullArmor.zP)}mm<br/>
-		&emsp;Rear:${roundHundredth(hullArmor.zN)}mm<br/>
 		&emsp;Side:${roundHundredth(hullArmor.xP)}mm/${roundHundredth(hullArmor.xN)}mm<br/>
+		&emsp;Rear:${roundHundredth(hullArmor.zN)}mm<br/>
 		&emsp;Top:${roundHundredth(hullArmor.yP)}mm<br/>
 		&emsp;Bottom:${roundHundredth(hullArmor.yN)}mm<br/>`;
 		
 		miscData.innerHTML+=`Turret Armor: <br/>
 		&emsp;Lowest:${roundHundredth(turretArmor.min)}mm<br/>
 		&emsp;Front:${roundHundredth(turretArmor.zP)}mm<br/>
-		&emsp;Rear:${roundHundredth(turretArmor.zN)}mm<br/>
 		&emsp;Side:${roundHundredth(turretArmor.xP)}mm/${roundHundredth(turretArmor.xN)}mm<br/>
+		&emsp;Rear:${roundHundredth(turretArmor.zN)}mm<br/>
 		&emsp;Top:${roundHundredth(turretArmor.yP)}mm<br/>
 		&emsp;Bottom:${roundHundredth(turretArmor.yN)}mm<br/>`;
 		
@@ -537,6 +560,27 @@ window.onload = function() {
 		for(let i in parts){
 			miscData.innerHTML+="&emsp;"+i+": "+parts[i]+"<br/>"
 		}
+		
+		//values requiring evaluation:
+		//(condition ? y: n)
+		//overwriting values
+		cannons=Object.keys(cannons);
+		let ammoKeys=Object.keys(ammo);
+		let commander=crew.commander ? crew.commander:0;
+		let gunner=crew.gunner ? crew.gunner:0;
+		let driver=crew.driver ? crew.driver:0;
+		let loader=crew.loader ? crew.loader:0;;
+		let radioman=crew.radioman ? crew.radioman:0;
+		let passenger=crew.passenger ? crew.passenger:0;
+		let cannon1=cannons[0] ? cannons[0]:"none";
+		let ammo1=ammo[ammoKeys[0]] ? ammo[ammoKeys[0]]:"none";
+		let cannon2=cannons[1] ? cannons[1]:"none";
+		let ammo2=ammo[ammoKeys[1]] ? ammo[ammoKeys[1]]:"none";
+		let cannon3=cannons[2] ? cannons[2]:"none";
+		let ammo3=ammo[ammoKeys[2]] ? ammo[ammoKeys[2]]:"none";
+		let flags="";
+		///assembled CSV
+		CSV+=`${name},${weight},${length},${width},${widthHullAndTrack},${height},${engine},${transmissionType+transmission},${fuel[0]},${fuel[1]},${crew["all"]},${commander},${gunner},${driver},${loader},${radioman},${passenger},${cannon1},${ammo1},${cannon2},${ammo2},${cannon3},${ammo3},${lowestDepression},${hullArmor.min},${hullArmor.zP},${hullArmor.xP},${hullArmor.xN},${hullArmor.zN},${hullArmor.yP},${hullArmor.yN},${turretArmor.min},${turretArmor.zP},${turretArmor.xP},${turretArmor.xN},${turretArmor.zN},${turretArmor.yP},${turretArmor.yN},${flags} \n`;
 		return; //why not i guess
 	}
 	
