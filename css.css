@@ -8,12 +8,42 @@ body {
 	margin:0 auto;
 	*/
 }
+#MOTD {
+	text-align:center;
+	padding:0;
+	margin:0;
+}
 #floatLeft {
 	float:right;
 }
 #blocklist {
 	max-height :700px;
   overflow-x: hidden; /* Hide horizontal scrollbar, may not be needed */
+}
+.rangeSpan {
+	box-sizing: border-box;
+	width: calc(25% - 20px);
+	display: inline-block;
+	margin: 5px;
+	padding: 5px;
+}
+.rangeSpan2 {
+	width: 300px;
+	display: inline-block;
+	margin: 5px;
+	padding: 5px;
+}
+.rangeSpan3 {
+	width: 500px;
+	display: inline-block;
+	margin: 5px;
+	padding: 5px;
+}
+#views span h3{
+	display: inline-block;
+}
+input[type="range"] {
+	width:calc(100% - 20px);
 }
 .small {
 	margin: 0;
@@ -48,9 +78,6 @@ thead {
 }
 #colorControll {
 	overflow: auto;
-}
-input[type="range"] {
-	width:20em;
 }
 #preview {
 	font-size:5em;
@@ -117,9 +144,6 @@ input[type="range"] {
 	margin:0px;
 	padding:0px;
 	float:left;
-}
-#bpname {
-	text-align:center;
 }
 #filespan {
 	text-align:right;

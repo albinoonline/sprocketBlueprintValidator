@@ -1,18 +1,8 @@
-/*
-ToDo:
-finish thinnest plate checker:
-add turret rings to canvas draw
-add plate encompass checking flag, flag color plates if the center of one is in another.
-
-make thiness for each side: generalize the render function
-
-overlay the effective thinest plate, as well as overlapping plates, as different colors over every overlay
-
-
-This release:
-rush job thinnest plate checker
-*/
 window.onload = function() {
+	console.log("loaded");
+	//message of the day
+ let MOTD= ["Batter Than Cake","5% AI","Minecraft","Message of the day!","Everybody do the flop!", "Does this dining chair have an ejector seat and if so, how?", "Welcome to The Facility", "I kissed a Gull and i liked it!", "Can i get fried with that?" , "We've thrown one in the boiler. It's water...","T, Tea, and Tee Hee Hee", "This tool has not been approved for existence", "Trousers", "AIM and MSN" , "Tractors everywhere", "Deus Vult", "We must take Jerusalem!", "Acidalia Planitia", "Hmmmmmmmmmmmmmmm", "You Must Construct Additional Pylons", "Job's finished!", "What, you run outta marines?", "--Removed Herobrine", "I will be hounted by my actions forever HOOT HOOT"];
+	document.getElementById('MOTD').innerHTML=MOTD[Math.floor(MOTD.length*Math.random())];	
 	//define things
 	//find things on the page
 	const Bpinput = document.getElementById('bp');//bp input
@@ -22,25 +12,44 @@ window.onload = function() {
 	const miscData = document.getElementById("data");//second output
 	const outputDiv = document.getElementById('output');//output div
 	const DL = document.getElementById('DL');//download button
+	
+	//sliders
+	const sliders = document.querySelectorAll("input[type=range]");//get all for event listener
+	const front = document.getElementById('front');
+	const left = document.getElementById('left');
+	const right = document.getElementById('right');
+	const rear = document.getElementById('rear');
+	const top = document.getElementById('top');
+	const bottom = document.getElementById('bottom');
+	
 	//canvases
 	const frontViewCanvas = document.getElementById('frontView');
 	const frontView = frontViewCanvas.getContext("2d");
-	///canvas adjustments
-	let canvasScale=-90;
-	let canvasXOffset=150;
-	let canvasYOffset=250;
+	const leftViewCanvas = document.getElementById('leftView');
+	const leftView = leftViewCanvas.getContext("2d");
+	const rightViewCanvas = document.getElementById('rightView');
+	const rightView = rightViewCanvas.getContext("2d");
+	const rearViewCanvas = document.getElementById('rearView');
+	const rearView = rearViewCanvas.getContext("2d");
+	const topViewCanvas = document.getElementById('topView');
+	const topView = topViewCanvas.getContext("2d");
+	const bottomViewCanvas = document.getElementById('bottomView');
+	const bottomView = bottomViewCanvas.getContext("2d");
 	
 	var errors = [[],[]];//array for storing errors
-	var CSV="";
+	var CSV="";//tank data for file output
+	
+	var plates =[];//an array of plates, so i can normalize the format, will be array of objects {points:[[x,y,z]...],thickness:[x,y,z,raw], isTurret:bool, isReal:bool, overlaps:bool}. thickness will be raw, then the pre sided thicknesses, so the inverted sides will be negative
+	
 	//add event listeners
-		//clear errros bttn
+	//clear errros bttn
 	errorbttn.addEventListener("click", function(){
 		//reset errors 
 		errors = [[],[]];
 		//clear error
 		error.innerHTML="";
 	});
-
+	//download CSV
 	DL.addEventListener('click', () => {
 		//make a temp a tag and force download
 		let a = document.createElement('a');
@@ -50,9 +59,23 @@ window.onload = function() {
 		a.click();
 		URL.revokeObjectURL(a.href);
 	});
-	
+	//read the file unput
 	Bpinput.addEventListener("change", function(){BPparse();});//the file input for bp
-
+	
+	
+	
+	//redraw the canvas
+	for(let i = 0; i < sliders.length; i++){
+		sliders[i].addEventListener("input", () => {
+			//update tag
+			let label=sliders[i].previousSibling.previousSibling
+			label.innerHTML=label.innerHTML.substring(0, label.innerHTML.indexOf("(")).concat(("("+sliders[i].value+"mm)"));
+			//redraw canvas
+			draw(plates);
+		});
+	}
+	
+	
 	///functions
 	function errorLog(text){
 		//0 contains the error, and 1 contains the count
@@ -72,6 +95,99 @@ window.onload = function() {
 		for(let i =0; i<errors[0].length;i++){
 			error.innerHTML+=`<p class="small">[${errors[1][i]}]${errors[0][i]}</p>`;
 		}
+	}
+
+	function drawSide(plates,canvasContext,x,y,z,inverted,canvasScale,canvasXOffset,canvasYOffset){
+		//clear the canvas
+		let width = canvasContext.canvas.width;
+		let height = canvasContext.canvas.width;
+		canvasContext.clearRect(0, 0, width, height);
+		
+		//for each plate
+		for (let p in plates){
+			let plate = plates[p];
+			//is the plate the correct facing?
+			if (Math.sign(plate.thickness[z])!=inverted){
+				//no skip
+				continue;
+			}
+			//get the 2d points we want to play with (smash 3d to 2d)
+			let points2d=[];
+			//for each vertex
+			for (let v in plate.points){
+				//grab the specific vertex
+				let vertex = plate.points[v];
+				//grab the specific points
+				points2d[v] = [vertex[x]*inverted,vertex[y]];//multiply x by inverted to get the inverted mirrored
+			}
+			//smashed points to 2d
+			//remove redundant points
+			let newPoints=removeDuplicatePoints(points2d);
+			//order points
+			points2d = orderClockwise(newPoints);
+			
+			//draw points
+			canvasContext.beginPath();
+			canvasContext.moveTo(points2d[0][0]*canvasScale+canvasXOffset,canvasYOffset+points2d[0][1]*canvasScale);
+			for (let p in points2d){
+				canvasContext.lineTo(points2d[p][0]*canvasScale+canvasXOffset,canvasYOffset+points2d[p][1]*canvasScale);
+			}
+			canvasContext.closePath();
+			canvasContext.stroke();
+			
+			///check armor validation
+			///Display note: armor appears to be appears to be x=side y=top z=front
+			//if front thickness is below slider, but above 0 make red
+			if ((front.value>plate.thickness[2]) && (plate.thickness[2]>0)){
+				canvasContext.fillStyle="red";
+				canvasContext.fill();
+			}
+			//if rear thickness is below slider, but below 0 make red
+			if ((rear.value>(-1*plate.thickness[2])) && (plate.thickness[2]<0)){
+				canvasContext.fillStyle="red";
+				canvasContext.fill();
+			}
+			//if left thickness is below slider, but below 0 make red
+			if ((left.value>plate.thickness[0]) && (plate.thickness[0]>0)){
+				canvasContext.fillStyle="red";
+				canvasContext.fill();
+			}
+			//if right thickness is below slider, but below 0 make red
+			if ((right.value>(-1*plate.thickness[0])) && (plate.thickness[0]<0)){
+				canvasContext.fillStyle="red";
+				canvasContext.fill();
+			}
+			//if top thickness is below slider, but below 0 make red
+			if ((top.value>plate.thickness[1]) && (plate.thickness[1]>0)){
+				canvasContext.fillStyle="red";
+				canvasContext.fill();
+			}
+			//if bottom thickness is below slider, but below 0 make red
+			if ((bottom.value>(-1*plate.thickness[1])) && (plate.thickness[1]<0)){
+				canvasContext.fillStyle="red";
+				canvasContext.fill();
+			}
+			//if abs thickness is below slider, but below 0 make red
+			if (abs.value>plate.thickness[3]){
+				canvasContext.fillStyle="red";
+				canvasContext.fill();
+			}
+			
+			
+			//end canvas
+		}
+	}
+	function draw(plates){
+		//so we have the list of plates, we will make the front only version, then we will split out to all sides
+		///reference plates =[]; {points:[[x,y,z]...],thickness:[x,y,z,raw], isTurret:bool, isReal:bool, overlaps:bool}
+		//canvas adjustments
+		let canvasScale=-90;
+		drawSide(plates,frontView,0,1,2,1,canvasScale,150,250);
+		drawSide(plates,leftView,2,1,0,1,canvasScale,250,250);
+		drawSide(plates,rightView,2,1,0,-1,canvasScale,250,250);
+		drawSide(plates,rearView,0,1,2,-1,canvasScale,150,250);
+		drawSide(plates,topView,2,0,1,1,canvasScale,250,150);
+		drawSide(plates,bottomView,2,0,1,-1,canvasScale,250,150);
 	}
 	
 	function normal_vec(p1, p2, p3){//find the normal vector of a plane @author: comyk
@@ -111,16 +227,15 @@ window.onload = function() {
 	
 	async function BPparse(){//this function turns the uploaded file into usable data and shoves in blueprint
 		//clear output
-		console.log("a");
 		miscData.innerHTML="";
-		frontView.clearRect(0, 0, frontViewCanvas.width, frontViewCanvas.height);
+		//clear plates
+		plates =[];
 		//reset file input
 		//reset CSV
 		CSV=`Name,Weight,Length,Width,Track Width,Height,Engine,Transmission,Fuel Internal,Fuel External,Crew Total,Commander,Gunner,Driver,Loader,Radioman,Passenger,Cannon 1,Ammo 1,Cannon 2,Ammo 2,Cannon 3,Ammo 3,Gun Depression,Hull Min,Hull Front,Hull Side,Hull Inverted Side,Hull Rear,Hull Roof,Hull Floor,Turret Min,Turret Front,Turret Side,Turret Inverted Side,Turret Rear,Turret Roof,Turret Floor,Flags \n`;
 		await Bpinput.files;
 		//get the json of the file and shove into BPfill
 		for (let i = 0; i < Bpinput.files.length; i++){
-			console.log(i);
 			let file = await Bpinput.files[i];
 			let text = await file.text();
 			let data = JSON.parse(text);
@@ -221,20 +336,13 @@ window.onload = function() {
 			let parsedData=JSON.parse(data.blueprints[i].data);
 			//different logic for different types
 			switch (data.blueprints[i].id) {
-				case "Compartment"://the bits of hull, turret ect
+				case "Compartment":///the bits of hull, turret ect
 				if (parsedData.compartment != null){
 					//we are freeform
 					//save armor values
 					armor = {min:5000,xN:5000,xP:5000,yN:5000,yP:5000,zN:5000,zP:5000};
-					//weakest plate logs
-					let weakestFront=[[0,0,0],[0,0,0],[0,0,0]];
-					let weakestTop=[[0,0,0],[0,0,0],[0,0,0]];
-					let weakestBack=[[0,0,0],[0,0,0],[0,0,0]];
-					let weakestBottom=[[0,0,0],[0,0,0],[0,0,0]];
-					let weakestSide=[[0,0,0],[0,0,0],[0,0,0]];
-					let weakestSideInverted=[[0,0,0],[0,0,0],[0,0,0]];
 					//turret location
-					let turretPos=[0,0,0];
+					let turretPos=[0,0,0,0,0,0];
 					
 					//are we a turret?
 					let isTurret=parsedData.turret !=null;
@@ -245,14 +353,14 @@ window.onload = function() {
 						//set the font back and side values to the turret ring armor
 						armor.zP=armor.zN=armor.xP=armor.xN=parsedData.turret.ringArmour;
 						//get the turret position
-						turretPos=parsedData.pos;
+						turretPos=parsedData.pos.concat(parsedData.rot);
 					}
 					
 					//go through faceMap, they are indexed by face
 					for (let j in parsedData.compartment.faceMap){
 						let face = parsedData.compartment.faceMap[j];//indexed points of the face
 						let vertecies=[];//temporaraly store verticies
-						let thick =[2000];//thickness points involved
+						let thick =[5000];//thickness points involved
 						//next we need real points, not indexes
 						
 						for (let e in face){
@@ -268,8 +376,29 @@ window.onload = function() {
 						//get minimum thickness off all points (yes points hold thickness)
 						thick = Math.min(...thick);
 						//angles of the armor in x y and z planes, negative being the inverse
-						let angles = slopeOfNormal(normal_vec(...(vertecies.slice(0,3))));//slicing off moint over 3, minor issue for torqued plates im ignoring
+						let angles = slopeOfNormal(normal_vec(...(vertecies.slice(0,3))));//slicing off points over 3, minor issue for torqued plates im ignoring
 						
+						//is the plate named "deco"
+						let isReal=parsedData.name.toLowerCase() !="deco";
+						
+						//add to giga plates array
+						
+						//turret transforms
+						if (isTurret){
+							///TODO: recursive translation, rotation
+							//translation
+							for( let v in vertecies){
+								vertecies[v][0]+=turretPos[0];
+								vertecies[v][1]+=turretPos[1];
+								vertecies[v][2]+=turretPos[2];
+							}
+						}
+						plates.push({points:vertecies,thickness:[thick/Math.sin(angles[0]),thick/Math.sin(angles[1]),thick/Math.sin(angles[2]),thick], isTurret:isTurret, isReal:isReal, overlaps:false});//overlap check happens later
+						
+						//should we score the plate?
+						if( !isReal) {
+							continue;
+						}
 						//is the armor thinner than older faces?
 						armor.min = Math.min(armor.min, thick);
 						
@@ -297,65 +426,9 @@ window.onload = function() {
 							//is the effective armor thinner than ones pointing that way?
 							armor.zN=Math.min(armor.zN,Math.abs(thick/Math.sin(angles[2])));
 						} else {//front
-							///canvas party
-							let x=0;
-							let y=1;
-							
-							let turretX=0;
-							let turretY=0;
-							let points2d=[];
-							//get the 2d "image"
-							//get the points we want to play with (smash 3d to 2d)
-							for (let v in vertecies){
-								points2d[v] = [vertecies[v][x],vertecies[v][y]];
-							}
-							//remove redundant points
-							let newPoints=removeDuplicatePoints(points2d);
-							//order points
-							points2d = orderClockwise(newPoints);
-							
-							if (isTurret){
-								turretX=turretPos[x]*canvasScale;
-								turretY=turretPos[y]*canvasScale;
-							}
-							//draw points
-							frontView.beginPath();
-							frontView.moveTo(turretX+points2d[0][x]*canvasScale+canvasXOffset,turretY+canvasYOffset+points2d[0][y]*canvasScale);
-							for (let p in points2d){
-								frontView.lineTo(turretX+points2d[p][x]*canvasScale+canvasXOffset,turretY+canvasYOffset+points2d[p][y]*canvasScale);
-							}
-							frontView.closePath();
-							frontView.stroke();
-							
-							let effectiveThickness=thick/Math.sin(angles[2]);
-							//is the effective armor thinner than ones pointing that way?
-							if (armor.zP >= effectiveThickness){
-								//is thinner update stats
-								armor.zP=effectiveThickness;
-								weakestFront=points2d;
-							}//not thinner, we dont care
+							armor.zP=Math.min(armor.zP,(thick/Math.sin(angles[2])));
 						}
 					}//end face loop
-					//recreate weakest plates with fill
-					let x=0;
-					let y=1;
-					let turretX=0;
-					let turretY=0;
-					points2d= weakestFront;
-					console.log(points2d);
-					if (isTurret){
-						turretX=turretPos[x]*canvasScale;
-						turretY=turretPos[y]*canvasScale;
-					}
-					//draw points
-					frontView.beginPath();
-					frontView.moveTo(turretX+points2d[0][x]*canvasScale+canvasXOffset,turretY+canvasYOffset+points2d[0][y]*canvasScale);
-					for (let p in points2d){
-						frontView.lineTo(turretX+points2d[p][x]*canvasScale+canvasXOffset,turretY+canvasYOffset+points2d[p][y]*canvasScale);
-					}
-					frontView.fillStyle = "red";
-					frontView.fill();
-					
 					//add to hull or turret accumulator:
 					if (isTurret){
 						//add to turret armor, have to check lowest in case of multiple turrets
@@ -503,6 +576,7 @@ window.onload = function() {
 		
 		///we have the data
 		
+		///ouputs
 		//gun depression becouse who cares about left and right AZI
 		let lowestDepression=-90;
 		for(let i in aim){
@@ -581,6 +655,52 @@ window.onload = function() {
 		let flags="";
 		///assembled CSV
 		CSV+=`${name},${weight},${length},${width},${widthHullAndTrack},${height},${engine},${transmissionType+transmission},${fuel[0]},${fuel[1]},${crew["all"]},${commander},${gunner},${driver},${loader},${radioman},${passenger},${cannon1},${ammo1},${cannon2},${ammo2},${cannon3},${ammo3},${lowestDepression},${hullArmor.min},${hullArmor.zP},${hullArmor.xP},${hullArmor.xN},${hullArmor.zN},${hullArmor.yP},${hullArmor.yN},${turretArmor.min},${turretArmor.zP},${turretArmor.xP},${turretArmor.xN},${turretArmor.zN},${turretArmor.yP},${turretArmor.yN},${flags} \n`;
+		
+		//update slider ranges, minimum should be minimum thickness in that category, then add 100 for the upper limit
+		//min
+		let adjust=Math.floor(Math.min(turretArmor.min,hullArmor.min));
+		abs.max=adjust+100;
+		abs.min=adjust;
+		abs.value=adjust;
+		//front
+		adjust=Math.floor(Math.min(turretArmor.zP,hullArmor.zP));
+		front.max=adjust+100;
+		front.min=adjust;
+		front.value=adjust;
+		
+		//rear
+		adjust=Math.floor(Math.min(turretArmor.zN,hullArmor.zN));
+		rear.max=adjust+100;
+		rear.min=adjust;
+		rear.value=adjust;
+		
+		//left
+		adjust=Math.floor(Math.min(turretArmor.xP,hullArmor.xP));
+		left.max=adjust+100;
+		left.min=adjust;
+		left.value=adjust;
+		
+		//right
+		adjust=Math.floor(Math.min(turretArmor.xN,hullArmor.xN));
+		right.max=adjust+100;
+		right.min=adjust;
+		right.value=adjust;
+		
+		//top
+		adjust=Math.floor(Math.min(turretArmor.yP,hullArmor.yP));
+		top.max=adjust+100;
+		top.min=adjust;
+		top.value=adjust;
+		
+		//bottom
+		adjust=Math.floor(Math.min(turretArmor.yN,hullArmor.yN));
+		bottom.max=adjust+100;
+		bottom.min=adjust;
+		bottom.value=adjust;
+		
+		//play with plates (check overlaps)
+		draw(plates);
+		
 		return; //why not i guess
 	}
 	

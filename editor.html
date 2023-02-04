@@ -23,7 +23,7 @@
 				<input type="file" id="bp" name="bp" accept='.blueprint' multiple>
 			</span>
 			
-			<span id="bpname">Batter Than Cake</span>
+			<span id="MOTD">MOTD</span>
 			<span id="filespan">
 				<input type="button" id="DL" value="Get .CSV"/>
 				<input type="button" id="errorbttn" value="Clear Errors"/>
@@ -31,15 +31,76 @@
 		</div><!-- end fileinput -->
 		
 		<div id="error"></div>
-		<p>This is a pre release that will allow you to check for your effective armor protection, just in case i go up in a blazing ball of fire before the tool is finished</p>
 		<div id="canvases">
 			<h2>Armor Displays:</h2>
-			<p>This sections shows the weakest armor plate frontally, its been rushed out to help find weak frontal plates, a better version will come soon(tm). Note: it just shows the current weakest plate for each compartment, and just one it encounters, others that are tied for weakest are not shown. Note: your if your turret ring is the thinnest armor a turret plate will not be rendered</p>
+			<p>Move the sliders to scan your various armor thicknesses, plates below these thicknesses will be colored red (in all views if i remember to get around to it)</p>
+			<div id="sliders">
+			<span class="rangeSpan">
+			<label for="front">Front protection (Xmm):</label>
+			<input type="range" id="front" name="front" step="1" value="1">
+			</span>
+			<span class="rangeSpan">
+			<label for="left">Left protection (Xmm):</label>
+			<input type="range" id="left" name="left" step="1" value="1">
+			</span>
+			<span class="rangeSpan">
+			<label for="right">Right protection (Xmm):</label>
+			<input type="range" id="right" name="right" step="1" value="1">
+			</span>
+			<span class="rangeSpan">
+			<label for="rear">Rear protection (Xmm):</label>
+			<input type="range" id="rear" name="rear" step="1" value="1">
+			</span>
+			<span class="rangeSpan">
+			<label for="top">Top protection (Xmm):</label>
+			<input type="range" id="top" name="top" step="1" value="1">
+			</span>
+			<span class="rangeSpan">
+			<label for="bottom">Bottom protection (Xmm):</label>
+			<input type="range" id="bottom" name="bottom" step="1" value="1">
+			</span>
+			<span class="rangeSpan">
+			<label for="abs">Absalute protection (Xmm):</label>
+			<input type="range" id="abs" name="abs" step="1" value="1">
+			</span>
+			
+			
+			</div id="views">
+			<span class="rangeSpan2">
+			<h3>Front</h3>
 			<canvas id="frontView" height="300"></canvas>
+			</span>
+			<span class="rangeSpan3">
+			<h3>Left</h3>
+			<canvas id="leftView" height="300" width="500"></canvas>
+			</span>
+			<span class="rangeSpan3">
+			<h3>Right</h3>
+			<canvas id="rightView" height="300" width="500"></canvas>
+			</span>
+			<span class="rangeSpan2">
+			<h3>Rear</h3>
+			<canvas id="rearView" height="300"></canvas>
+			</span>
+			<span class="rangeSpan3">
+			<h3>Top</h3>
+			<canvas id="topView" height="300" width="500"></canvas>
+			</span>
+			<span class="rangeSpan3">
+			<h3>Bottom</h3>
+			<canvas id="bottomView" height="300" width="500"></canvas>
+			</span>
+			</div>
 		</div>
 		<div id="output"></div>
 		<section class="side">
 			<h2>PATCH NOTES:</h2>
+			<h3>1.0.0 (2/3/23)</h3>
+			<h4>Tool Update:</h4>
+			<p>This is no longer considered a pre-release, though there are still some things to improve (mainly plate occlusion, recursive turrets).</p>
+			<p>Updated Easter Egg.</p>
+			<p>Compartments named "deco" are no longer counted for armor/size.</p>
+			<p>You can now see all plates below certain user set thicknesses, and more views are generated.</p>
 			<h3>1/17/23</h3>
 			<h4>Tool Update:</h4>
 			<p>Armor Order is now front side rear, rather than front rear side.</p>
@@ -51,11 +112,8 @@
 			<p>The turrets second side armor is now rounded to the nearest hundredth (whoops..., and yes I haven't bothered learning which side is left or right in the code).</p>
 			
 			<h3>12/28/22</h3>
-			<h4>T.E.A.B.A.G. 10 Rule Update:</h4>
-			<p>The Aesthetic Appliqué Armour Cheat will now be <b>enabled</b> due to exploits, despite the video saying otherwise.</p>
 			<h4>T.E.A.B.A.G. 10 Rule Clarification/Tool Update:</h4>
 			<p>On the issue of the bottom turret plate, and weaker roof armor under the turret; Hull roof armor (or turret roof if you want a pancake turret) must be to spec (15mm), but the underside of the turret no longer has to be, the tool will now ignore plates that are both on a turret, and whoos points "up" value are exactly 0 (you can check by selecting the point, and opening the position tab).</p>
-			<p>Note: Mantlet armor does not count as valid armor due to it not changing weight, be sure that the plate(s) behind the mantled are of effective armor, the tool does not read mantlet armor.</p>
 			<h4>Tool Update:</h4>
 			<p>Output values are now rounded to the nearest hundredth.</p>
 			<p>Width now says raw is hull and simplified is track.</p>
