@@ -13,9 +13,10 @@
 	<div id='pagewrapper'>
 		<header>
 			<h1>Albino's Blueprint Validator</h1>
-			
-			<a href="https://github.com/albinoonline/sprocketBlueprintValidator">Browse on Github</a> <a href="https://www.reddit.com/user/albinocreeper">u/albinocreeper on reddit</a>
-			<a id="floatLeft" href="https://www.reddit.com/user/comyk79">Thanks to u/comyk79 for assisting me with vector math.</a>
+			<a href="https://github.com/albinoonline/sprocketBlueprintValidator">Browse on Github</a>
+			<a href="https://www.reddit.com/user/albinocreeper">u/albinocreeper on reddit</a>
+			<a href="https://www.gears.albino.online">My transmission calculator.</a>
+			<a id="floatLeft" href="https://www.reddit.com/user/comyk79">Thanks u/comyk79 for vector math.</a>
 		</header>
 		<div id="fileinput">
 			<span id="bpspan">
@@ -33,7 +34,7 @@
 		<div id="error"></div>
 		<div id="canvases">
 			<h2>Armor Displays:</h2>
-			<p>Move the sliders to scan your various armor thicknesses, plates below these thicknesses will be colored red (in all views if i remember to get around to it)</p>
+			<p>Move the sliders to scan your various armor thicknesses, plates below these thicknesses will be colored red</p>
 			<div id="sliders">
 			<span class="rangeSpan">
 			<label for="front">Front protection (Xmm):</label>
@@ -62,6 +63,10 @@
 			<span class="rangeSpan">
 			<label for="abs">Absalute protection (Xmm):</label>
 			<input type="range" id="abs" name="abs" step="1" value="1">
+			</span>
+			<span class="rangeSpan">
+			<label for="scale">Draw Scale</label>
+			<input type="range" id="scale" name="scale" step="1" value="90" min="10" max="150">
 			</span>
 			
 			
@@ -95,19 +100,22 @@
 		<div id="output"></div>
 		<section class="side">
 			<h2>PATCH NOTES:</h2>
+			<h3>1.0.1 (3/4/23)</h3>
+			<p>Updated to work with sprocket v0.12423 (new ammo and metadata format)</p>
+			<p>Armor sliders no longer reset on loading a new tank</p>
+			<p>Tool now reads tank description, and gun mount traverse range</p>
+			<p>Linked my old tranny tool</p>
+			<p>Viewport zoom for them chonkey bois.</p>
 			<h3>1.0.0 (2/3/23)</h3>
-			<h4>Tool Update:</h4>
 			<p>This is no longer considered a pre-release, though there are still some things to improve (mainly plate occlusion, recursive turrets).</p>
 			<p>Updated Easter Egg.</p>
 			<p>Compartments named "deco" are no longer counted for armor/size.</p>
 			<p>You can now see all plates below certain user set thicknesses, and more views are generated.</p>
 			<h3>1/17/23</h3>
-			<h4>Tool Update:</h4>
 			<p>Armor Order is now front side rear, rather than front rear side.</p>
 			<p>Tool now reads twin transmission option.</p>
 			<p>Stat breakdowns are now downloadable as a CSV file, and multiple tanks can now be read at once</p>
 			<h3>12/30/22</h3>
-			<h4>Tool Update:</h4>
 			<p>A canvas (generated image) of the tank is now created, this image shows the weakest plate frontally, or a plate that is tied for the weakest, note this does not display the turret ring, which may be weaker than the toughest plate shown</p>
 			<p>The turrets second side armor is now rounded to the nearest hundredth (whoops..., and yes I haven't bothered learning which side is left or right in the code).</p>
 			

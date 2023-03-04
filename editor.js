@@ -1,3 +1,12 @@
+/*
+TODO:
+oclusion
+advanced turret placement
+identify unammed parts
+flags for high part counts
+
+*/
+
 window.onload = function() {
 	console.log("loaded");
 	//message of the day
@@ -21,6 +30,7 @@ window.onload = function() {
 	const rear = document.getElementById('rear');
 	const top = document.getElementById('top');
 	const bottom = document.getElementById('bottom');
+	const canvasScaleSlider= document.getElementById('scale');
 	
 	//canvases
 	const frontViewCanvas = document.getElementById('frontView');
@@ -67,9 +77,11 @@ window.onload = function() {
 	//redraw the canvas
 	for(let i = 0; i < sliders.length; i++){
 		sliders[i].addEventListener("input", () => {
-			//update tag
-			let label=sliders[i].previousSibling.previousSibling
-			label.innerHTML=label.innerHTML.substring(0, label.innerHTML.indexOf("(")).concat(("("+sliders[i].value+"mm)"));
+			//update tag, if its not the scale tag
+			if(sliders[i].name !="scale"){
+				let label=sliders[i].previousSibling.previousSibling;
+				label.innerHTML=label.innerHTML.substring(0, label.innerHTML.indexOf("(")).concat(("("+sliders[i].value+"mm)"));
+			}
 			//redraw canvas
 			draw(plates);
 		});
@@ -181,13 +193,15 @@ window.onload = function() {
 		//so we have the list of plates, we will make the front only version, then we will split out to all sides
 		///reference plates =[]; {points:[[x,y,z]...],thickness:[x,y,z,raw], isTurret:bool, isReal:bool, overlaps:bool}
 		//canvas adjustments
-		let canvasScale=-90;
+		let canvasScale=-canvasScaleSlider.value;
+		let logTime= Date.now();
 		drawSide(plates,frontView,0,1,2,1,canvasScale,150,250);
 		drawSide(plates,leftView,2,1,0,1,canvasScale,250,250);
 		drawSide(plates,rightView,2,1,0,-1,canvasScale,250,250);
 		drawSide(plates,rearView,0,1,2,-1,canvasScale,150,250);
 		drawSide(plates,topView,2,0,1,1,canvasScale,250,150);
 		drawSide(plates,bottomView,2,0,1,-1,canvasScale,250,150);
+		console.log("Render took: "+(Date.now()-logTime)+"ms");
 	}
 	
 	function normal_vec(p1, p2, p3){//find the normal vector of a plane @author: comyk
@@ -232,7 +246,7 @@ window.onload = function() {
 		plates =[];
 		//reset file input
 		//reset CSV
-		CSV=`Name,Weight,Length,Width,Track Width,Height,Engine,Transmission,Fuel Internal,Fuel External,Crew Total,Commander,Gunner,Driver,Loader,Radioman,Passenger,Cannon 1,Ammo 1,Cannon 2,Ammo 2,Cannon 3,Ammo 3,Gun Depression,Hull Min,Hull Front,Hull Side,Hull Inverted Side,Hull Rear,Hull Roof,Hull Floor,Turret Min,Turret Front,Turret Side,Turret Inverted Side,Turret Rear,Turret Roof,Turret Floor,Flags \n`;
+		CSV=`Name,Weight,Length,Width,Track Width,Height,Engine,Transmission,Fuel Internal,Fuel External,Crew Total,Commander,Gunner,Driver,Loader,Radioman,Passenger,Cannon 1,Ammo 1,Cannon 2,Ammo 2,Cannon 3,Ammo 3,Gun Depression,Gun Traverse,Hull Min,Hull Front,Hull Side,Hull Inverted Side,Hull Rear,Hull Roof,Hull Floor,Turret Min,Turret Front,Turret Side,Turret Inverted Side,Turret Rear,Turret Roof,Turret Floor,Description,Flags \n`;
 		await Bpinput.files;
 		//get the json of the file and shove into BPfill
 		for (let i = 0; i < Bpinput.files.length; i++){
@@ -299,7 +313,7 @@ window.onload = function() {
 		let hullArmor = {min:5000,xN:5000,xP:5000,yN:5000,yP:5000,zN:5000,zP:5000};//save effective armor
 		let turretArmor = {min:5000,xN:5000,xP:5000,yN:5000,yP:5000,zN:5000,zP:5000};//save effective armor
 		//gimmies, these values are stored simply and dont need to be located
-		let weight =data.fullMass/1000;
+		let weight =data.header.mass/1000;
 		let name = data.name;
 		
 		//acumulators, becouse who knows how many there are
@@ -314,18 +328,40 @@ window.onload = function() {
 		for (let i in data.ext) {
 			// unfortunately diferent objects can have multiple things in them, so we loop DAT next
 			for (let j in data.ext[i].DAT) {
-				//see if the object is a "fuelTank"
-				if (data.ext[i].DAT[j].id =="fuelTank") {
-					//is fuel tank, base size is 45L, the scalers are T 6, 7, and 8
-					fuel[1] += 45*data.ext[i].T[6]*data.ext[i].T[7]*data.ext[i].T[8];
-				}
+				
 				//add to the parts object
 				if (typeof parts[data.ext[i].DAT[j].id] == "undefined") {
-					//new part
+					//new part indexed by id, wich is actually name
 					parts[data.ext[i].DAT[j].id]=1;
 				} else {
 					//old part
 					parts[data.ext[i].DAT[j].id] +=1;
+				}
+				
+				///if x checks, will be replaced with a switch later
+				//see if the object is a "fuelTank"
+				if (data.ext[i].DAT[j].id =="fuelTank") {
+					//is external fuel tank, base size is 45L, the scalers are T 6, 7, and 8
+					fuel[1] += 45*data.ext[i].T[6]*data.ext[i].T[7]*data.ext[i].T[8];
+				}
+				//see if the object is a "ammoRack"
+				if (data.ext[i].DAT[j].id =="ammoRackParams") {
+					//get the shell
+					let shell=JSON.parse(data.ext[i].DAT[j].data).Profile;
+					//get width and heights, devided by the shell diamiter and rounded down (T 6 and 7) 8 would be length, but you cant double stack ammo yet
+					let ammoWidth = Math.floor(data.ext[i].T[6]/(shell.diameter/1000));
+					let ammoHeight = Math.floor(data.ext[i].T[7]/(shell.diameter/1000));
+					let ammoCount =ammoHeight*ammoWidth// //loop through all ammos
+					//add to the list
+					let ammoName =shell.diameter+"X"+shell.length+"mm";
+					//add to the cannons object
+					if (typeof ammo[ammoName] == "undefined") {
+						//new part
+						ammo[ammoName]=ammoCount;
+					} else {
+						//old part
+						ammo[ammoName] +=ammoCount;
+					}
 				}
 			}//added to lists end DAT loop
 		}//end ext loop
@@ -514,7 +550,9 @@ window.onload = function() {
 					}
 				break;
 				case "AMO"://what racks are here
+					///left for legacy reasons
 					//loop through all ammos
+					console.log("ammo")
 					for (let j in parsedData.racks) {
 						//get the ammo size
 						let ammoName =parsedData.racks[j].diameter+"X"+parsedData.racks[j].length+"mm";
@@ -577,10 +615,12 @@ window.onload = function() {
 		///we have the data
 		
 		///ouputs
-		//gun depression becouse who cares about left and right AZI
+		//gun depression because who cares about left and right AZI
 		let lowestDepression=-90;
+		let bestTraverse=-90;
 		for(let i in aim){
 			lowestDepression =Math.max(lowestDepression,aim[i].down);
+			bestTraverse =Math.max(bestTraverse,aim[i].right-aim[i].left);
 		}
 		
 		let length = farthestBackward-farthestForward;
@@ -588,6 +628,7 @@ window.onload = function() {
 		let height = farthestUpward;
 		
 		miscData.innerHTML+="Name= "+name+"<br/>";
+		miscData.innerHTML+="Description= "+data.header.desc+"<br/>";
 		miscData.innerHTML+="Weight= "+roundHundredth(weight)+"T"+"<br/>";
 		miscData.innerHTML+="Length= "+roundHundredth(length)+"m<br/>"
 		miscData.innerHTML+="width= "+roundHundredth(width)+"m raw hull or "+roundHundredth(widthHullAndTrack)+"m simplified track<br/>"
@@ -602,6 +643,8 @@ window.onload = function() {
 			miscData.innerHTML+="&emsp;"+i+": "+cannons[i]+"<br/>"
 		}
 		miscData.innerHTML+="Gun depression= "+roundHundredth(lowestDepression)+"<br/>"
+		miscData.innerHTML+="Gun traverse (non turret)= "+roundHundredth(bestTraverse)+"<br/>"
+		
 		//ammo
 		miscData.innerHTML+="ammo:"+"<br/>"
 		for(let i in ammo){
@@ -654,49 +697,43 @@ window.onload = function() {
 		let ammo3=ammo[ammoKeys[2]] ? ammo[ammoKeys[2]]:"none";
 		let flags="";
 		///assembled CSV
-		CSV+=`${name},${weight},${length},${width},${widthHullAndTrack},${height},${engine},${transmissionType+transmission},${fuel[0]},${fuel[1]},${crew["all"]},${commander},${gunner},${driver},${loader},${radioman},${passenger},${cannon1},${ammo1},${cannon2},${ammo2},${cannon3},${ammo3},${lowestDepression},${hullArmor.min},${hullArmor.zP},${hullArmor.xP},${hullArmor.xN},${hullArmor.zN},${hullArmor.yP},${hullArmor.yN},${turretArmor.min},${turretArmor.zP},${turretArmor.xP},${turretArmor.xN},${turretArmor.zN},${turretArmor.yP},${turretArmor.yN},${flags} \n`;
+		CSV+=`${name},${weight},${length},${width},${widthHullAndTrack},${height},${engine},${transmissionType+transmission},${fuel[0]},${fuel[1]},${crew["all"]},${commander},${gunner},${driver},${loader},${radioman},${passenger},${cannon1},${ammo1},${cannon2},${ammo2},${cannon3},${ammo3},${lowestDepression},${bestTraverse},${hullArmor.min},${hullArmor.zP},${hullArmor.xP},${hullArmor.xN},${hullArmor.zN},${hullArmor.yP},${hullArmor.yN},${turretArmor.min},${turretArmor.zP},${turretArmor.xP},${turretArmor.xN},${turretArmor.zN},${turretArmor.yP},${turretArmor.yN},${data.header.desc.replaceAll(",",".")},${flags} \n`;
 		
 		//update slider ranges, minimum should be minimum thickness in that category, then add 100 for the upper limit
 		//min
 		let adjust=Math.floor(Math.min(turretArmor.min,hullArmor.min));
 		abs.max=adjust+100;
 		abs.min=adjust;
-		abs.value=adjust;
+		
 		//front
 		adjust=Math.floor(Math.min(turretArmor.zP,hullArmor.zP));
 		front.max=adjust+100;
 		front.min=adjust;
-		front.value=adjust;
 		
 		//rear
 		adjust=Math.floor(Math.min(turretArmor.zN,hullArmor.zN));
 		rear.max=adjust+100;
 		rear.min=adjust;
-		rear.value=adjust;
 		
 		//left
 		adjust=Math.floor(Math.min(turretArmor.xP,hullArmor.xP));
 		left.max=adjust+100;
 		left.min=adjust;
-		left.value=adjust;
 		
 		//right
 		adjust=Math.floor(Math.min(turretArmor.xN,hullArmor.xN));
 		right.max=adjust+100;
 		right.min=adjust;
-		right.value=adjust;
 		
 		//top
 		adjust=Math.floor(Math.min(turretArmor.yP,hullArmor.yP));
 		top.max=adjust+100;
 		top.min=adjust;
-		top.value=adjust;
 		
 		//bottom
 		adjust=Math.floor(Math.min(turretArmor.yN,hullArmor.yN));
 		bottom.max=adjust+100;
 		bottom.min=adjust;
-		bottom.value=adjust;
 		
 		//play with plates (check overlaps)
 		draw(plates);
